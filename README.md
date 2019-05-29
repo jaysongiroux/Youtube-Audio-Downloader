@@ -1,4 +1,4 @@
-###Download Youtube Audio
+#Download Youtube Audio
 
 Allows you to download the audio at the highest bitrate youtube offers with a simple to use GUI.
 
