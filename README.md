@@ -1,4 +1,4 @@
-#Download Youtube Audio
+<h1>Download Youtube Audio</h1>
 
 Allows you to download the audio at the highest bitrate youtube offers with a simple to use GUI.
 
