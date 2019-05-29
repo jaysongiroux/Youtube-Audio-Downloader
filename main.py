@@ -1,99 +1,101 @@
 from pytube import YouTube
 from colorama import Fore
 from tkinter import *
-import subprocess
+from tkinter import filedialog
+from tkinter import Radiobutton
+from tkinter import *
+from tkinter.ttk import *
+import threading
 
 """
 author: Jason G.
-Todo:
-1. when downloading video, needs to merge downloaded audio and video
-2. channel crawling to determine when a channel uploads a new video
-    a. sends user a notifcation to download new video automatically
-3. work on GUI
-
+name: Youtube Audio Downloader
+TODO: 
+1. playlist audio
 
 """
+filename = " "
+video = " "
+file_size=0
+pbnumber = 0
 
 
-
-#test link: https://www.youtube.com/watch?v=ByEfLtLda64
-def decide(url,radio):
+def decide(url,radio, location):
     print(Fore.BLUE + "[INFO] Deciding...")
-    print("[INFO] You clicked: ", radio)
     if radio==1:
-        Download_Audio(url)
-        print()
+        Download_Audio(url, location)
     elif radio==2:
-        Download_Video(url)
-        print()
-    elif radio ==3:
-        download_Playlist_video(url)
-        print()
-    elif radio ==4:
-        download_playlist_audio(url)
-        print()
+        download_playlist_audio(url, location)
 
-
-def Download_Audio(url):
+def Download_Audio(url, location):
+    global file_size
     print(Fore.BLUE + "[INFO] Downloading Audio...")
-    YouTube(url).streams.filter(only_audio=True).first().download()
+    video_type = YouTube(url,on_progress_callback=progress_function).streams.filter(only_audio=True).first()
+    file_size = video_type.filesize
+    video_type.download(location)
     print(Fore.BLUE + "[INFO] Done Downloading Audio")
 
-    audio = "audio.mp4"
-    try:
-        return audio
-    except:
-        print()
-
-def Download_Video(url):
-    yt = YouTube(url)
-    # #used to list opetions to download
-    # #streams = yt.streams.filter(mime_type="video/mp4",res="1080p").all()
-    # streams=yt.streams.filter().order_by('resolution').desc().all()
-    #
-    # for i in range(len(streams)):
-    #     print(streams[i])
-
-    print(Fore.BLUE + "[INFO] Downloading Video...")
-    yt.streams.filter(res="1080p",mime_type="video/mp4").order_by('resolution').desc().first().download()
-    print(Fore.BLUE + "[INFO] Done Downloading Video")
-    audio_name = Download_Audio(url)
-
-
-def download_Playlist_video(url):
+def download_playlist_audio(url,location):
     print("doing stuff...")
 
-def download_playlist_audio(url):
-    print("doing stuff...")
+def progress_function(stream = None, chunk = None, file_handle = None, remaining = None):
+    #Gets the percentage of the file that has been downloaded.
+    global pbnumber
+    global progress
+    pbnumber = int((100*(file_size-remaining))/file_size)
+    # progress["value"] = pbnumber
+    print("{:00.0f}% downloaded".format(pbnumber))
+
 
 
 r = Tk()
-r.geometry('350x200')
+r.geometry('500x400')
+labelfont = ('times', 20, 'bold')
 
 r.title('Download youtube Video')
+title = Label(r, text="Download Audio From YouTube")
+title.config(font=labelfont)
+title.grid(row=0,column=0, columnspan=2, sticky="n", pady=(5,15))
+
 
 #asks if you want to download audio or video
 v = IntVar()
-Radiobutton(r, text='[Video] Audio', variable=v, value=1).pack(anchor=W)
-Radiobutton(r, text='[Video] Video', variable=v, value=2).pack(anchor=W)
-Radiobutton(r, text='[Playlist] Video', variable=v, value=3).pack(anchor=W)
-Radiobutton(r, text='[Playlist] Audio', variable=v, value=4).pack(anchor=W)
+pbmove = IntVar()
+pbmove.set('')
 
 
-label1 = Label(r, text="Youtube Video or playlist link:").pack()
-#asks for the link of the video
-link = Entry(r)
-link.pack()
-link.focus_set()
+
+rb1 = Radiobutton(r, text='[Video] Audio', variable=v, value=1)#.grid(row=0, column=0)#.pack()
+rb2 = Radiobutton(r, text='[Playlist] Audio', variable=v, value=2)#.grid(row=0, column=0)#.pack()
+
+rb1.grid(row=1, column=0,columnspan=2, sticky="N")
+rb2.grid(row=2, column=0,columnspan=2, sticky="N", pady=(0,15))
+
+
+def browse_button():
+    global filename
+    filename = filedialog.askdirectory()
+
 
 def clicked():
+    content = link.get()
     radioButtonClicked = v.get()
-    string = link.get()
-    print(string,radioButtonClicked)
-    decide(string,radioButtonClicked)
+    decide(content,radioButtonClicked, filename)
 
 
-button = Button(r, text='Download', width=25, command=clicked)
-button.pack()
+label2 = Label(r, text="Location to Download: ").grid(sticky="W",row=3, column=0)
+button2 = Button(text="Browse", command=browse_button).grid(row=3, column=1, sticky="w")
+
+label1 = Label(r, text="Youtube Video or playlist link: ").grid(sticky="W",row=4, column=0)
+
+
+link = Entry(r)
+link.grid(sticky="W",row=4, column=1)
+#progress = Progressbar(r, orient=HORIZONTAL, length=300, mode='determinate',maximum=100, value=pbnumber).grid(row=6, column=0, columnspan=2,pady=(10, 10))
+button = Button(r, text='Download', width=25, command=clicked).grid(row=5,column=0, columnspan=2)
+
+
+
+
 
 r.mainloop()
